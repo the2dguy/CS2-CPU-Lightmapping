@@ -8,3 +8,5 @@
 ## How to use
 Download the latest version from [here](https://github.com/the2dguy/CS2-CPU-Lightmapping/releases).
 The UI should be familiar to you as it has been intentionally made to mimic the UI of the Hammer-5 build screen.
+
+sorry for bad code
