@@ -1,5 +1,5 @@
-﻿using BlueMystic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Source2CPULightmap.Classes;
 
 namespace Source2CPULightmap
 {

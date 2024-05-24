@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
-using static BlueMystic.KeyValue;
+using static Source2CPULightmap.Classes.KeyValue;
 
-namespace BlueMystic
+namespace Source2CPULightmap.Classes
 {
     /* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
     public static class Messenger
@@ -244,7 +244,7 @@ namespace BlueMystic
             foreach (var _button in CmdButtons)
             {
                 _button.FlatAppearance.BorderColor =
-                    (form.AcceptButton == _button) ? DMode.OScolors.Accent : DMode.OScolors.Control;
+                    form.AcceptButton == _button ? DMode.OScolors.Accent : DMode.OScolors.Control;
                 bottomPanel.Controls.Add(_button);
 
                 _button.Location = new Point(LastPos - (_button.Width + Padding),
@@ -500,7 +500,7 @@ namespace BlueMystic
             foreach (var _button in CmdButtons)
             {
                 _button.FlatAppearance.BorderColor =
-                    (form.AcceptButton == _button) ? DMode.OScolors.Accent : DMode.OScolors.Control;
+                    form.AcceptButton == _button ? DMode.OScolors.Accent : DMode.OScolors.Control;
                 bottomPanel.Controls.Add(_button);
 
                 _button.Location = new Point(LastPos - (_button.Width + Padding),
@@ -569,9 +569,9 @@ namespace BlueMystic
                 };
                 Control field_Control = null;
 
-                BorderStyle BStyle = (DMode.IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D);
+                BorderStyle BStyle = DMode.IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D;
 
-                if (field.ValueType == KeyValue.ValueTypes.String)
+                if (field.ValueType == ValueTypes.String)
                 {
                     field_Control = new TextBox
                     {
@@ -592,7 +592,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Password)
+                if (field.ValueType == ValueTypes.Password)
                 {
                     field_Control = new TextBox
                     {
@@ -614,7 +614,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Integer)
+                if (field.ValueType == ValueTypes.Integer)
                 {
                     field_Control = new NumericUpDown
                     {
@@ -639,7 +639,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Decimal)
+                if (field.ValueType == ValueTypes.Decimal)
                 {
                     field_Control = new NumericUpDown
                     {
@@ -664,7 +664,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Date)
+                if (field.ValueType == ValueTypes.Date)
                 {
                     field_Control = new DateTimePicker
                     {
@@ -687,7 +687,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Time)
+                if (field.ValueType == ValueTypes.Time)
                 {
                     field_Control = new DateTimePicker
                     {
@@ -705,7 +705,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Boolean)
+                if (field.ValueType == ValueTypes.Boolean)
                 {
                     field_Control = new CheckBox
                     {
@@ -723,7 +723,7 @@ namespace BlueMystic
                     };
                 }
 
-                if (field.ValueType == KeyValue.ValueTypes.Dynamic)
+                if (field.ValueType == ValueTypes.Dynamic)
                 {
                     // field_Control = new FlatComboBox
                     // {
@@ -1143,8 +1143,8 @@ namespace BlueMystic
 
         public List<Base64Image> Icons
         {
-            get { return this._Icons; }
-            set { this._Icons = value; }
+            get { return _Icons; }
+            set { _Icons = value; }
         }
 
 

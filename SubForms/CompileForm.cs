@@ -1,4 +1,4 @@
-﻿using BlueMystic;
+﻿using Source2CPULightmap.Classes;
 using System.Diagnostics;
 
 namespace Source2CPULightmap

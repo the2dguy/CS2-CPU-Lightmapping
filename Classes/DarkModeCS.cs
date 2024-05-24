@@ -7,7 +7,7 @@ using System.Windows.Forms;
 //using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
-namespace BlueMystic
+namespace Source2CPULightmap.Classes
 {
     /// <summary>This tries to automatically apply Windows Dark Mode (if enabled) to a Form.
     /// <para>Author: BlueMystic (bluemystic.play@gmail.com)  2024</para></summary>
@@ -177,25 +177,25 @@ namespace BlueMystic
         public const int EM_SETCUEBANNER = 5377;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public extern static IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam,
+        public extern static nint SendMessage(nint hWnd, int msg, nint wParam,
             [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 
 
         [DllImport("DwmApi")]
-        public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, int[] attrValue, int attrSize);
+        public static extern int DwmSetWindowAttribute(nint hwnd, int attr, int[] attrValue, int attrSize);
 
         [DllImport("dwmapi.dll")]
-        public static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out RECT pvAttribute,
+        public static extern int DwmGetWindowAttribute(nint hwnd, int dwAttribute, out RECT pvAttribute,
             int cbAttribute);
 
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
-        private extern static int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+        private extern static int SetWindowTheme(nint hWnd, string pszSubAppName, string pszSubIdList);
 
         [DllImport("dwmapi.dll", EntryPoint = "#127")]
         public static extern void DwmGetColorizationParameters(ref DWMCOLORIZATIONcolors colors);
 
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
-        private static extern IntPtr CreateRoundRectRgn
+        private static extern nint CreateRoundRectRgn
         (
             int nLeftRect, // x-coordinate of upper-left corner
             int nTopRect, // y-coordinate of upper-left corner
@@ -206,15 +206,15 @@ namespace BlueMystic
         );
 
         [DllImport("user32")]
-        private static extern IntPtr GetDC(IntPtr hwnd);
+        private static extern nint GetDC(nint hwnd);
 
         [DllImport("user32")]
-        private static extern IntPtr ReleaseDC(IntPtr hwnd, IntPtr hdc);
+        private static extern nint ReleaseDC(nint hwnd, nint hdc);
 
-        public static IntPtr GetHeaderControl(ListView list)
+        public static nint GetHeaderControl(ListView list)
         {
             const int LVM_GETHEADER = 0x1000 + 31;
-            return SendMessage(list.Handle, LVM_GETHEADER, IntPtr.Zero, "");
+            return SendMessage(list.Handle, LVM_GETHEADER, nint.Zero, "");
         }
 
         #endregion
@@ -262,7 +262,7 @@ namespace BlueMystic
                         ThemeControl(_control);
                     }
 
-                    OwnerForm.ControlAdded += (object sender, ControlEventArgs e) => { ThemeControl(e.Control); };
+                    OwnerForm.ControlAdded += (sender, e) => { ThemeControl(e.Control); };
                 }
             }
         }
@@ -275,8 +275,8 @@ namespace BlueMystic
         /// <param name="control">Can be a Form or any Winforms Control.</param>
         public void ThemeControl(Control control)
         {
-            BorderStyle BStyle = (IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D);
-            FlatStyle FStyle = (IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard);
+            BorderStyle BStyle = IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D;
+            FlatStyle FStyle = IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard;
 
             //Change the Colors only if its the default ones, this allows the user to set own colors:
             if (control.BackColor == SystemColors.Control || control.BackColor == SystemColors.Window)
@@ -291,8 +291,8 @@ namespace BlueMystic
 
             control.GetType().GetProperty("BorderStyle")?.SetValue(control, BStyle);
 
-            control.HandleCreated += (object sender, EventArgs e) => { ApplySystemDarkTheme(control); };
-            control.ControlAdded += (object sender, ControlEventArgs e) => { ThemeControl(e.Control); };
+            control.HandleCreated += (sender, e) => { ApplySystemDarkTheme(control); };
+            control.ControlAdded += (sender, e) => { ThemeControl(e.Control); };
 
             if (control is TextBox tb)
             {
@@ -330,8 +330,8 @@ namespace BlueMystic
             if (control is TabControl tab)
             {
                 tab.Appearance = TabAppearance.Normal;
-                tab.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
-                tab.DrawItem += (object sender, DrawItemEventArgs e) =>
+                tab.DrawMode = TabDrawMode.OwnerDrawFixed;
+                tab.DrawItem += (sender, e) =>
                 {
                     //Draw the background of the main control
                     using (SolidBrush backColor = new SolidBrush(tab.Parent.BackColor))
@@ -351,7 +351,7 @@ namespace BlueMystic
                             var tBounds = e.Bounds;
                             //tBounds.Inflate(100, 100);
 
-                            bool IsSelected = (tab.SelectedIndex == i);
+                            bool IsSelected = tab.SelectedIndex == i;
                             if (IsSelected)
                             {
                                 e.Graphics.FillRectangle(tabBack, tBounds);
@@ -379,7 +379,7 @@ namespace BlueMystic
                 if (lView.View == View.Details)
                 {
                     lView.OwnerDraw = true;
-                    lView.DrawColumnHeader += (object? sender, DrawListViewColumnHeaderEventArgs e) =>
+                    lView.DrawColumnHeader += (sender, e) =>
                     {
                         //e.DrawDefault = true;
                         //e.DrawBackground();
@@ -430,7 +430,7 @@ namespace BlueMystic
                 button.FlatAppearance.CheckedBackColor = OScolors.Accent;
                 button.BackColor = OScolors.Control;
                 button.FlatAppearance.BorderColor =
-                    (OwnerForm.AcceptButton == button) ? OScolors.Accent : OScolors.Control;
+                    OwnerForm.AcceptButton == button ? OScolors.Accent : OScolors.Control;
                 //SetRoundBorders(button, 4, OScolors.SurfaceDark, 1);
             }
 
@@ -477,7 +477,7 @@ namespace BlueMystic
                 toolBar.GripStyle = ToolStripGripStyle.Hidden;
                 toolBar.RenderMode = ToolStripRenderMode.Professional;
                 toolBar.Renderer = new MyRenderer(new CustomColorTable(OScolors), ColorizeIcons)
-                    { MyColors = OScolors };
+                { MyColors = OScolors };
             }
 
             if (control is ContextMenuStrip cMenu)
@@ -619,7 +619,7 @@ namespace BlueMystic
         {
             OSThemeColors _ret = new OSThemeColors();
 
-            bool IsDarkMode = (GetWindowsColorMode() <= 0); //<- O: DarkMode, 1: LightMode
+            bool IsDarkMode = GetWindowsColorMode() <= 0; //<- O: DarkMode, 1: LightMode
             if (IsDarkMode)
             {
                 _ret.Background = Color.FromArgb(32, 32, 32); //<- Negro Claro
@@ -672,9 +672,9 @@ namespace BlueMystic
                 {
                     _Control.GetType().GetProperty("BorderStyle")?.SetValue(_Control, BorderStyle.None);
                     _Control.Region =
-                        System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, _Control.Width, _Control.Height, Radius,
+                        Region.FromHrgn(CreateRoundRectRgn(0, 0, _Control.Width, _Control.Height, Radius,
                             Radius));
-                    _Control.Paint += (object sender, PaintEventArgs e) =>
+                    _Control.Paint += (sender, e) =>
                     {
                         //base.OnPaint(e);
                         Graphics graph = e.Graphics;
@@ -703,7 +703,7 @@ namespace BlueMystic
                                 }
 
                                 graph.SmoothingMode = SmoothingMode.AntiAlias;
-                                penBorder.Alignment = System.Drawing.Drawing2D.PenAlignment.Center;
+                                penBorder.Alignment = PenAlignment.Center;
                                 //if (isFocused) penBorder.Color = borderFocusColor;
 
                                 if (underlinedStyle) //Line Style
@@ -769,7 +769,7 @@ namespace BlueMystic
             return bmp2;
         }
 
-        public static Image ChangeToColor(Image bmp, Color c) => (Image)ChangeToColor((Bitmap)bmp, c);
+        public static Image ChangeToColor(Image bmp, Color c) => ChangeToColor((Bitmap)bmp, c);
 
         #endregion
 
@@ -870,76 +870,76 @@ namespace BlueMystic
         }
 
         /// <summary>For the very back of the Window</summary>
-        public System.Drawing.Color Background { get; set; } = SystemColors.Control;
+        public Color Background { get; set; } = SystemColors.Control;
 
         /// <summary>For Borders around the Background</summary>
-        public System.Drawing.Color BackgroundDark { get; set; } = SystemColors.ControlDark;
+        public Color BackgroundDark { get; set; } = SystemColors.ControlDark;
 
         /// <summary>For hightlights over the Background</summary>
-        public System.Drawing.Color BackgroundLight { get; set; } = SystemColors.ControlLight;
+        public Color BackgroundLight { get; set; } = SystemColors.ControlLight;
 
         /// <summary>For Container above the Background</summary>
-        public System.Drawing.Color Surface { get; set; } = SystemColors.ControlLightLight;
+        public Color Surface { get; set; } = SystemColors.ControlLightLight;
 
         /// <summary>For Borders around the Surface</summary>
-        public System.Drawing.Color SurfaceDark { get; set; } = SystemColors.ControlLight;
+        public Color SurfaceDark { get; set; } = SystemColors.ControlLight;
 
         /// <summary>For Highligh over the Surface</summary>
-        public System.Drawing.Color SurfaceLight { get; set; } = Color.White;
+        public Color SurfaceLight { get; set; } = Color.White;
 
         /// <summary>For Main Texts</summary>
-        public System.Drawing.Color TextActive { get; set; } = SystemColors.ControlText;
+        public Color TextActive { get; set; } = SystemColors.ControlText;
 
         /// <summary>For Inactive Texts</summary>
-        public System.Drawing.Color TextInactive { get; set; } = SystemColors.GrayText;
+        public Color TextInactive { get; set; } = SystemColors.GrayText;
 
         /// <summary>For Hightligh Texts</summary>
-        public System.Drawing.Color TextInAccent { get; set; } = SystemColors.HighlightText;
+        public Color TextInAccent { get; set; } = SystemColors.HighlightText;
 
         /// <summary>For the background of any Control</summary>
-        public System.Drawing.Color Control { get; set; } = SystemColors.ButtonFace;
+        public Color Control { get; set; } = SystemColors.ButtonFace;
 
         /// <summary>For Bordes of any Control</summary>
-        public System.Drawing.Color ControlDark { get; set; } = SystemColors.ButtonShadow;
+        public Color ControlDark { get; set; } = SystemColors.ButtonShadow;
 
         /// <summary>For Highlight elements in a Control</summary>
-        public System.Drawing.Color ControlLight { get; set; } = SystemColors.ButtonHighlight;
+        public Color ControlLight { get; set; } = SystemColors.ButtonHighlight;
 
         /// <summary>Windows 10+ Chosen Accent Color</summary>
-        public System.Drawing.Color Accent { get; set; } = DarkModeCS.GetWindowsAccentColor();
+        public Color Accent { get; set; } = DarkModeCS.GetWindowsAccentColor();
 
-        public System.Drawing.Color AccentDark
+        public Color AccentDark
         {
             get { return ControlPaint.Dark(Accent); }
         }
 
-        public System.Drawing.Color AccentLight
+        public Color AccentLight
         {
             get { return ControlPaint.Light(Accent); }
         }
 
         /// <summary>the color displayed most frequently across your app's screens and components.</summary>
-        public System.Drawing.Color Primary { get; set; } = SystemColors.Highlight;
+        public Color Primary { get; set; } = SystemColors.Highlight;
 
-        public System.Drawing.Color PrimaryDark
+        public Color PrimaryDark
         {
             get { return ControlPaint.Dark(Primary); }
         }
 
-        public System.Drawing.Color PrimaryLight
+        public Color PrimaryLight
         {
             get { return ControlPaint.Light(Primary); }
         }
 
         /// <summary>to accent select parts of your UI.</summary>
-        public System.Drawing.Color Secondary { get; set; } = SystemColors.HotTrack;
+        public Color Secondary { get; set; } = SystemColors.HotTrack;
 
-        public System.Drawing.Color SecondaryDark
+        public Color SecondaryDark
         {
             get { return ControlPaint.Dark(Secondary); }
         }
 
-        public System.Drawing.Color SecondaryLight
+        public Color SecondaryLight
         {
             get { return ControlPaint.Light(Secondary); }
         }
@@ -1150,9 +1150,9 @@ namespace BlueMystic
             int Padding = 2; //<- From the right side
             Size cSize = new Size(8, 4); //<- Size of the Chevron: 8x4 px
             Pen ChevronPen = new Pen(MyColors.TextInactive, 2); //<- Color and Border Width
-            Point P1 = new Point(bounds.Width - (cSize.Width + Padding), (bounds.Height / 2) - (cSize.Height / 2));
-            Point P2 = new Point(bounds.Width - Padding, (bounds.Height / 2) - (cSize.Height / 2));
-            Point P3 = new Point(bounds.Width - (cSize.Width / 2 + Padding), (bounds.Height / 2) + (cSize.Height / 2));
+            Point P1 = new Point(bounds.Width - (cSize.Width + Padding), bounds.Height / 2 - cSize.Height / 2);
+            Point P2 = new Point(bounds.Width - Padding, bounds.Height / 2 - cSize.Height / 2);
+            Point P3 = new Point(bounds.Width - (cSize.Width / 2 + Padding), bounds.Height / 2 + cSize.Height / 2);
 
             e.Graphics.DrawLine(ChevronPen, P1, P3);
             e.Graphics.DrawLine(ChevronPen, P2, P3);
@@ -1252,7 +1252,7 @@ namespace BlueMystic
         public CustomColorTable(OSThemeColors _Colors)
         {
             Colors = _Colors;
-            base.UseSystemColors = false;
+            UseSystemColors = false;
         }
 
         public override Color ImageMarginGradientBegin
