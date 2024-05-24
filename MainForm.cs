@@ -1,117 +1,129 @@
+using BlueMystic;
+using System.Diagnostics;
+
 namespace Source2CPULightmap
 {
     public partial class MainForm : Form
     {
+        private DarkModeCS DM = null;
+
         public MainForm()
         {
             InitializeComponent();
-        }
-
-        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SettingsForm settingsForm = new SettingsForm();
-            settingsForm.ShowDialog();
+            DM = new DarkModeCS(this);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            if (CheckAndLoadSettings())
+            {
+                PopulateAddonList();
+                HandleThreadCount();
+                SetDefaultCompileOptions();
+            }
+        }
+
+        private bool CheckAndLoadSettings()
+        {
             string missingList = SettingsManager.CheckSettings();
             if (!string.IsNullOrEmpty(missingList))
             {
-                addonLabel.Enabled = false;
-                addonList.Enabled = false;
-                dirNotSetLabel.Visible = true;
-                mainGroupBox.Enabled = false;
-                MessageBox.Show(
-                    $"The following requirements are not set:\n{missingList}\nPlease set them in Settings",
-                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DisplaySettingsWarning(missingList);
+                return false;
             }
-            else
+
+            return true;
+        }
+
+        private void DisplaySettingsWarning(string missingList)
+        {
+            addonLabel.Enabled = addonList.Enabled = mainGroupBox.Enabled = false;
+            dirNotSetLabel.Visible = true;
+            Messenger.MessageBox($"The following requirements are not set:\n{missingList}\nPlease set them in Settings",
+                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void PopulateAddonList()
+        {
+            string csgoDir = SettingsManager.LoadSettings().csgo_install_dir;
+            string addonsDir = Path.Combine(csgoDir, "content", "csgo_addons");
+
+            if (!Directory.Exists(addonsDir))
             {
-                string csgoDir = SettingsManager.LoadSettings().csgo_install_dir;
-                // get folders in csgoDir + content\csgo_addons
-                string addonsDir = Path.Combine(csgoDir, "content", "csgo_addons");
-                if (!Directory.Exists(addonsDir))
-                {
-                    MessageBox.Show("csgo_addons folder not found", "Error", MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    return;
-                }
-
-                string[] csgoAddonsFolders = Directory.GetDirectories(addonsDir);
-
-                // exclude "addon_template" and "workshop_items" folders
-                csgoAddonsFolders = csgoAddonsFolders.Where(folder =>
-                    !folder.EndsWith("addon_template") && !folder.EndsWith("workshop_items")).ToArray();
-
-                // set the folders as options in the combobox
-                foreach (string folder in csgoAddonsFolders)
-                {
-                    addonList.Items.Add(Path.GetFileName(folder));
-                }
-
-                if (!lightmapGenerate.Checked)
-                {
-                    lightmapGenDisabledLabel.Visible = true;
-                }
-
-                compilePresetList.SelectedItem = "Full";
+                Messenger.MessageBox("csgo_addons folder not found", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
             }
+
+            var addonFolders = Directory.GetDirectories(addonsDir)
+                .Where(folder => !folder.EndsWith("addon_template") && !folder.EndsWith("workshop_items"));
+
+            foreach (var folder in addonFolders)
+            {
+                addonList.Items.Add(Path.GetFileName(folder));
+            }
+        }
+
+        private void HandleThreadCount()
+        {
+            int threadCount = Environment.ProcessorCount;
+            cpuThreadCount.Maximum = threadCount;
+
+            if (threadCount > 2) cpuThreadCount.Value = 4;
+            else cpuThreadCount.Value = 2;
+
+            availableCpuThreadLabel.Text += threadCount;
+        }
+
+        private void SetDefaultCompileOptions()
+        {
+            if (!lightmapGenerate.Checked)
+            {
+                lightmapGenDisabledLabel.Visible = true;
+            }
+
+            compilePresetList.SelectedItem = "Full";
         }
 
         private void compilePresetList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (compilePresetList.SelectedItem.ToString() == "Fast")
+            switch (compilePresetList.SelectedItem.ToString())
             {
-                FastCompileSelected();
-            }
-            else if (compilePresetList.SelectedItem.ToString() == "Full")
-            {
-                FullCompileSelected();
-            }
-            else if (compilePresetList.SelectedItem.ToString() == "Final")
-            {
-                FinalCompileSelected();
+                case "Fast":
+                    SetFastCompileOptions();
+                    break;
+                case "Full":
+                    SetFullCompileOptions();
+                    break;
+                case "Final":
+                    SetFinalCompileOptions();
+                    break;
             }
         }
 
-        private void FastCompileSelected()
+        private void SetFastCompileOptions()
         {
-            lightmapGenerate.Checked = false;
-            buildPhysics.Checked = true;
-            buildVis.Checked = false;
-            buildNav.Checked = true;
-            bakeReverb.Checked = false;
-            bakePaths.Checked = false;
+            lightmapGenerate.Checked = buildVis.Checked = bakeReverb.Checked = bakePaths.Checked = false;
+            buildPhysics.Checked = buildNav.Checked = true;
         }
 
-        private void FullCompileSelected()
+        private void SetFullCompileOptions()
         {
-            lightmapGenerate.Checked = true;
+            lightmapGenerate.Checked = buildPhysics.Checked = buildVis.Checked = buildNav.Checked =
+                bakeReverb.Checked = bakePaths.Checked = true;
             lightmapResList.SelectedItem = "1024";
             lightmapQualityList.SelectedItem = "Standard";
-            lightmapCompression.Checked = true;
-            lightmapNoiseRemoval.Checked = true;
-            buildPhysics.Checked = true;
-            buildVis.Checked = true;
-            buildNav.Checked = true;
-            bakeReverb.Checked = true;
-            bakePaths.Checked = true;
+            lightmapCompression.Checked = lightmapNoiseRemoval.Checked = true;
             saudioThreads.Value = 4;
         }
 
-        private void FinalCompileSelected()
+        private void SetFinalCompileOptions()
         {
-            lightmapGenerate.Checked = true;
+            lightmapGenerate.Checked = buildPhysics.Checked = buildVis.Checked = buildNav.Checked =
+                bakeReverb.Checked = bakePaths.Checked = true;
             lightmapResList.SelectedItem = "2048";
             lightmapQualityList.SelectedItem = "Final";
-            lightmapCompression.Checked = true;
-            lightmapNoiseRemoval.Checked = true;
-            buildPhysics.Checked = true;
-            buildVis.Checked = true;
-            buildNav.Checked = true;
-            bakeReverb.Checked = true;
-            bakePaths.Checked = true;
+            lightmapCompression.Checked = lightmapNoiseRemoval.Checked = true;
             saudioThreads.Value = 4;
         }
 
@@ -120,42 +132,63 @@ namespace Source2CPULightmap
             lightmapGenDisabledLabel.Visible = !lightmapGenerate.Checked;
         }
 
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new SettingsForm().ShowDialog();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // TODO: Open GitHub readme link in browser
+        }
+
         private void compileButton_Click(object sender, EventArgs e)
         {
-            // Check if all required fields are set (map and addon)
             if (addonList.SelectedItem == null)
             {
-                MessageBox.Show("No addon selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Messenger.MessageBox("No addon selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             if (mapNameList.SelectedItem == null)
             {
-                MessageBox.Show("No map selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Messenger.MessageBox("No map selected", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            string compile_options =
-                $"{addonList.SelectedItem},{mapNameList.SelectedItem},3,{lightmapGenerate.Checked},{lightmapResList.SelectedItem},{lightmapQualityList.SelectedItem},{lightmapCompression.Checked},{lightmapNoiseRemoval.Checked},{lightmapDisableCalc.Checked},{buildPhysics.Checked},{buildVis.Checked},{buildNav.Checked},{bakeReverb.Checked},{bakePaths.Checked},{saudioThreads.Value}";
-            CompileForm compileForm = new CompileForm(compile_options);
-            compileForm.ShowDialog();
+            string compileOptions = GetCompileOptions();
+            new CompileForm(compileOptions).ShowDialog();
+        }
+
+        private string GetCompileOptions()
+        {
+            return $"{addonList.SelectedItem},{mapNameList.SelectedItem},{cpuThreadCount.Value}," +
+                   $"{lightmapGenerate.Checked},{lightmapResList.SelectedItem},{lightmapQualityList.SelectedItem}," +
+                   $"{lightmapCompression.Checked},{lightmapNoiseRemoval.Checked},{lightmapDisableCalc.Checked}," +
+                   $"{buildPhysics.Checked},{buildVis.Checked},{buildNav.Checked}," +
+                   $"{bakeReverb.Checked},{bakePaths.Checked},{saudioThreads.Value}";
         }
 
         private void addonList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            AppSettings settings = SettingsManager.LoadSettings();
-            string csgoDir = settings.csgo_install_dir;
-            string mapDir = Path.Combine(csgoDir, "content", "csgo_addons", addonList.SelectedItem.ToString(), "maps");
+            string csgoDir = SettingsManager.LoadSettings().csgo_install_dir;
+            string addonName = addonList.SelectedItem.ToString();
+            string mapDir = Path.Combine(csgoDir, "content", "csgo_addons", addonName, "maps");
+
             if (!Directory.Exists(mapDir))
             {
-                MessageBox.Show("maps folder not found", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Messenger.MessageBox("maps folder not found", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
+            PopulateMapList(mapDir);
+        }
+
+        private void PopulateMapList(string mapDir)
+        {
             string[] maps = Directory.GetFiles(mapDir, "*.vmap");
-            mapNameList.SelectedItem = null;
             mapNameList.Items.Clear();
-            foreach (string map in maps)
+            foreach (var map in maps)
             {
                 mapNameList.Items.Add(Path.GetFileName(map));
             }

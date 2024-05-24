@@ -1,135 +1,89 @@
-﻿using System.Diagnostics;
+﻿using BlueMystic;
+using System.Diagnostics;
 
 namespace Source2CPULightmap
 {
     public partial class CompileForm : Form
     {
-        public string compile_options;
+        private DarkModeCS DM = null;
         private Process process;
+        private string compileOptions;
 
-        public CompileForm(string _compile_options)
+        public CompileForm(string _compileOptions)
         {
-            compile_options = _compile_options;
+            compileOptions = _compileOptions;
             InitializeComponent();
+            DM = new DarkModeCS(this);
         }
 
         private void CompileForm_Load(object sender, EventArgs e)
         {
-            AppSettings settings = SettingsManager.LoadSettings();
-            string csgoDir = settings.csgo_install_dir;
+            string csgoDir = SettingsManager.LoadSettings().csgo_install_dir;
+            string compilerPath = Path.Combine(csgoDir, "game", "bin", "win64", "resourcecompiler.exe");
 
-            string compiler_path = Path.Combine(csgoDir, "game", "bin", "win64", "resourcecompiler.exe");
+            string[] options = compileOptions.Split(',');
 
-            string[] options = compile_options.Split(',');
+            string addonName = options[0];
+            string mapName = options[1];
+            string mapPath = Path.Combine(csgoDir, "content", "csgo_addons", addonName, "maps", mapName);
 
-            string addon_name = options[0];
-            string map_name = options[1];
-
+            // TODO: Implement how many CPU threads can be used
             // string cpu_threads = options[2];
 
-            string map_path = Path.Combine(csgoDir, "content", "csgo_addons", addon_name, "maps", map_name);
+            string arguments = BuildArguments(csgoDir, mapPath, options);
 
+            AppendText($"Running command: {Environment.NewLine}\"{compilerPath}\" {arguments}{Environment.NewLine}");
+
+            // Run the command asynchronously when the form loads
+            Task.Run(() => RunCommand(compilerPath, arguments));
+        }
+
+        private string BuildArguments(string csgoDir, string mapPath, string[] options)
+        {
             string arguments =
-                $"-lightmapcpu -threads 4 -fshallow -maxtextureres 256 -dxlevel 110 -quiet -unbufferedio -i \"{map_path}\" -noassert  -world";
+                $"-lightmapcpu -threads 4 -fshallow -maxtextureres 256 -dxlevel 110 -quiet -unbufferedio -i \"{mapPath}\" -noassert -world";
 
-            string generate_lightmap = options[3];
-            string lightmap_res = options[4];
-            string lightmap_quality = options[5];
-
-            string lightmap_quality_int;
-
-            if (lightmap_quality == "Fast")
-            {
-                lightmap_quality_int = "0";
-            }
-            else if (lightmap_quality == "Standard")
-            {
-                lightmap_quality_int = "1";
-            }
-            else
-            {
-                lightmap_quality_int = "2";
-            }
-
-            string lightmap_compression = options[6];
-            string lightmap_noise_removal = options[7];
-            string lightmap_disable_calc = options[8];
-
-            if (generate_lightmap.ToLower() == "true")
+            if (options[3].ToLower() == "true")
             {
                 arguments +=
-                    $" -bakelighting -lightmapMaxResolution {lightmap_res} -lightmapDoWeld -lightmapVRadQuality {lightmap_quality_int}";
+                    $" -bakelighting -lightmapMaxResolution {options[4]} -lightmapDoWeld -lightmapVRadQuality {(options[5] == "Fast" ? "0" : (options[5] == "Standard" ? "1" : "2"))}";
 
-                if (lightmap_noise_removal.ToLower() == "false")
+                if (options[7].ToLower() == "false")
                 {
                     arguments += " -lightmapDisableFiltering";
                 }
 
                 arguments += " -lightmapLocalCompile";
 
-                if (lightmap_compression.ToLower() == "false")
+                if (options[6].ToLower() == "false")
                 {
                     arguments += " -lightmapCompressionDisabled";
                 }
 
-                if (lightmap_disable_calc.ToLower() == "true")
+                if (options[8].ToLower() == "true")
                 {
                     arguments += " -disableLightingCalculations";
                 }
             }
-            else if (lightmap_disable_calc.ToLower() == "true")
+            else if (options[8].ToLower() == "true")
             {
                 arguments += " -nolightmaps";
             }
 
-            string build_physics = options[9];
+            if (options[9].ToLower() == "true") arguments += " -phys";
+            if (options[10].ToLower() == "true") arguments += " -vis";
+            if (options[11].ToLower() == "true") arguments += " -nav";
+            if (options[12].ToLower() == "true") arguments += $" -sareverb -sareverb_threads {options[14]}";
+            if (options[13].ToLower() == "true") arguments += $" -sapaths -sareverb_threads {options[14]}";
 
-            if (build_physics.ToLower() == "true")
-            {
-                arguments += " -phys";
-            }
+            arguments += $" -retail -breakpad -nop4 -outroot \"{Path.Combine(csgoDir, "game")}\"";
 
-            string build_vis = options[10];
-
-            if (build_vis.ToLower() == "true")
-            {
-                arguments += " -vis";
-            }
-
-            string build_nav = options[11];
-
-            if (build_nav.ToLower() == "true")
-            {
-                arguments += " -nav";
-            }
-
-            string bake_reverb = options[12];
-            string bake_paths = options[13];
-            string saudio_threads = options[14];
-
-            if (bake_reverb.ToLower() == "true")
-            {
-                arguments += $" -sareverb -sareverb_threads {saudio_threads}";
-            }
-
-            if (bake_paths.ToLower() == "true")
-            {
-                arguments += $" -sapaths -sareverb_threads {saudio_threads}";
-            }
-
-            string outroot = Path.Combine(csgoDir, "game");
-
-            arguments += $" -retail -breakpad -nop4 -outroot \"{outroot}\"";
-
-            AppendText($"Running command: {Environment.NewLine} \"{compiler_path}\" {arguments} {Environment.NewLine}");
-
-            // Run the command asynchronously when the form loads
-            Task.Run(() => RunCommand(compiler_path, arguments));
+            return arguments;
         }
 
-        private async Task RunCommand(string compiler_path, string arguments)
+        private async Task RunCommand(string compilerPath, string arguments)
         {
-            if (!File.Exists(compiler_path))
+            if (!File.Exists(compilerPath))
             {
                 AppendText("resourcecompiler.exe not found at the specified location." + Environment.NewLine);
                 return;
@@ -141,7 +95,7 @@ namespace Source2CPULightmap
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = compiler_path,
+                        FileName = compilerPath,
                         Arguments = arguments,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -150,58 +104,51 @@ namespace Source2CPULightmap
                     }
                 };
 
-                process.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        // Append the command output to the TextBox
-                        AppendText(e.Data + Environment.NewLine);
-                    }
-                });
-
-                process.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        // Append the command error output to the TextBox
-                        AppendText("ERROR: " + e.Data + Environment.NewLine);
-                    }
-                });
+                process.OutputDataReceived += (sender, e) => AppendText(e.Data + Environment.NewLine);
+                process.ErrorDataReceived += (sender, e) => AppendText("ERROR: " + e.Data + Environment.NewLine);
 
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
-                // Wait for the process to exit
                 await process.WaitForExitAsync();
 
-                // Check the exit code to determine success or failure
-                if (process.ExitCode == 0)
-                {
-                    AppendText("Map compiled successfully" + Environment.NewLine);
-                    compileDoneButton.Invoke((MethodInvoker)delegate { compileDoneButton.Enabled = true; });
-                    compileCancelButton.Invoke((MethodInvoker)delegate { compileCancelButton.Enabled = true; });
-                }
-                else
-                {
-                    AppendText($"Command exited with code {process.ExitCode}." + Environment.NewLine);
-                }
+                AppendText(process.ExitCode == 0
+                    ? "Map compiled successfully" + Environment.NewLine
+                    : $"Command exited with code {process.ExitCode}." + Environment.NewLine);
             }
             catch (Exception ex)
             {
                 AppendText("Exception: " + ex.Message + Environment.NewLine);
             }
+            finally
+            {
+                EnableButtons();
+            }
+        }
+
+        private void EnableButtons()
+        {
+            compileDoneButton.Invoke((MethodInvoker)(() => compileDoneButton.Enabled = true));
+            compileCancelButton.Invoke((MethodInvoker)(() => compileCancelButton.Enabled = false));
         }
 
         private void AppendText(string text)
         {
             if (InvokeRequired)
             {
-                this.Invoke(new Action<string>(AppendText), new object[] { text });
+                Invoke(new Action<string>(AppendText), text);
                 return;
             }
 
-            outputTextbox.AppendText(text);
+            try
+            {
+                outputTextbox.AppendText(text);
+            }
+            catch (InvalidOperationException)
+            {
+                // Ignore
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

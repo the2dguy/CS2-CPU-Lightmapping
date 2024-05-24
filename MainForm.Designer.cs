@@ -31,13 +31,19 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             mainMenuStrip = new MenuStrip();
             settingsToolStripMenuItem = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
             mainGroupBox = new GroupBox();
+            cpuThreadGroupbox = new GroupBox();
+            availableCpuThreadLabel = new Label();
+            cpuThreadCount = new NumericUpDown();
+            useCPUThreadsLabel = new Label();
             mapNameLabel = new Label();
             mapNameList = new ComboBox();
             compilePresetListLabel = new Label();
             compilePresetList = new ComboBox();
             compileButton = new Button();
             steamAudioGroupBox = new GroupBox();
+            saudioThreadRecomLabel = new Label();
             steamAudioThreadsLabel = new Label();
             saudioThreads = new NumericUpDown();
             bakePaths = new CheckBox();
@@ -61,9 +67,10 @@
             addonLabel = new Label();
             addonList = new ComboBox();
             dirNotSetLabel = new Label();
-            saudioThreadRecomLabel = new Label();
             mainMenuStrip.SuspendLayout();
             mainGroupBox.SuspendLayout();
+            cpuThreadGroupbox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)cpuThreadCount).BeginInit();
             steamAudioGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)saudioThreads).BeginInit();
             navGroupBox.SuspendLayout();
@@ -74,7 +81,7 @@
             // 
             // mainMenuStrip
             // 
-            mainMenuStrip.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem });
+            mainMenuStrip.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, helpToolStripMenuItem });
             mainMenuStrip.Location = new Point(0, 0);
             mainMenuStrip.Name = "mainMenuStrip";
             mainMenuStrip.RenderMode = ToolStripRenderMode.System;
@@ -88,8 +95,16 @@
             settingsToolStripMenuItem.Text = "Settings";
             settingsToolStripMenuItem.Click += settingsToolStripMenuItem_Click;
             // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            helpToolStripMenuItem.Click += helpToolStripMenuItem_Click;
+            // 
             // mainGroupBox
             // 
+            mainGroupBox.Controls.Add(cpuThreadGroupbox);
             mainGroupBox.Controls.Add(mapNameLabel);
             mainGroupBox.Controls.Add(mapNameList);
             mainGroupBox.Controls.Add(compilePresetListLabel);
@@ -105,6 +120,45 @@
             mainGroupBox.Size = new Size(461, 469);
             mainGroupBox.TabIndex = 1;
             mainGroupBox.TabStop = false;
+            // 
+            // cpuThreadGroupbox
+            // 
+            cpuThreadGroupbox.Controls.Add(availableCpuThreadLabel);
+            cpuThreadGroupbox.Controls.Add(cpuThreadCount);
+            cpuThreadGroupbox.Controls.Add(useCPUThreadsLabel);
+            cpuThreadGroupbox.Location = new Point(255, 18);
+            cpuThreadGroupbox.Name = "cpuThreadGroupbox";
+            cpuThreadGroupbox.Size = new Size(200, 61);
+            cpuThreadGroupbox.TabIndex = 10;
+            cpuThreadGroupbox.TabStop = false;
+            cpuThreadGroupbox.Text = "CPU Threads";
+            // 
+            // availableCpuThreadLabel
+            // 
+            availableCpuThreadLabel.AutoSize = true;
+            availableCpuThreadLabel.Location = new Point(107, 28);
+            availableCpuThreadLabel.Name = "availableCpuThreadLabel";
+            availableCpuThreadLabel.Size = new Size(61, 15);
+            availableCpuThreadLabel.TabIndex = 2;
+            availableCpuThreadLabel.Text = "Available: ";
+            // 
+            // cpuThreadCount
+            // 
+            cpuThreadCount.Location = new Point(42, 26);
+            cpuThreadCount.Minimum = new decimal(new int[] { 2, 0, 0, 0 });
+            cpuThreadCount.Name = "cpuThreadCount";
+            cpuThreadCount.Size = new Size(57, 23);
+            cpuThreadCount.TabIndex = 1;
+            cpuThreadCount.Value = new decimal(new int[] { 2, 0, 0, 0 });
+            // 
+            // useCPUThreadsLabel
+            // 
+            useCPUThreadsLabel.AutoSize = true;
+            useCPUThreadsLabel.Location = new Point(10, 28);
+            useCPUThreadsLabel.Name = "useCPUThreadsLabel";
+            useCPUThreadsLabel.Size = new Size(26, 15);
+            useCPUThreadsLabel.TabIndex = 0;
+            useCPUThreadsLabel.Text = "Use";
             // 
             // mapNameLabel
             // 
@@ -140,7 +194,7 @@
             compilePresetList.Items.AddRange(new object[] { "Fast", "Full", "Final" });
             compilePresetList.Location = new Point(105, 56);
             compilePresetList.Name = "compilePresetList";
-            compilePresetList.Size = new Size(121, 23);
+            compilePresetList.Size = new Size(140, 23);
             compilePresetList.TabIndex = 6;
             compilePresetList.SelectedIndexChanged += compilePresetList_SelectedIndexChanged;
             // 
@@ -167,6 +221,15 @@
             steamAudioGroupBox.TabIndex = 4;
             steamAudioGroupBox.TabStop = false;
             steamAudioGroupBox.Text = "Steam audio";
+            // 
+            // saudioThreadRecomLabel
+            // 
+            saudioThreadRecomLabel.AutoSize = true;
+            saudioThreadRecomLabel.Location = new Point(303, 22);
+            saudioThreadRecomLabel.Name = "saudioThreadRecomLabel";
+            saudioThreadRecomLabel.Size = new Size(102, 15);
+            saudioThreadRecomLabel.TabIndex = 3;
+            saudioThreadRecomLabel.Text = "(4 recommended)";
             // 
             // steamAudioThreadsLabel
             // 
@@ -397,21 +460,12 @@
             dirNotSetLabel.AutoSize = true;
             dirNotSetLabel.BackColor = SystemColors.Control;
             dirNotSetLabel.ForeColor = Color.Red;
-            dirNotSetLabel.Location = new Point(296, 35);
+            dirNotSetLabel.Location = new Point(295, 36);
             dirNotSetLabel.Name = "dirNotSetLabel";
             dirNotSetLabel.Size = new Size(156, 15);
             dirNotSetLabel.TabIndex = 4;
             dirNotSetLabel.Text = "CSGO/CS2 Directory not set!";
             dirNotSetLabel.Visible = false;
-            // 
-            // saudioThreadRecomLabel
-            // 
-            saudioThreadRecomLabel.AutoSize = true;
-            saudioThreadRecomLabel.Location = new Point(303, 22);
-            saudioThreadRecomLabel.Name = "saudioThreadRecomLabel";
-            saudioThreadRecomLabel.Size = new Size(102, 15);
-            saudioThreadRecomLabel.TabIndex = 3;
-            saudioThreadRecomLabel.Text = "(4 recommended)";
             // 
             // MainForm
             // 
@@ -426,14 +480,19 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = mainMenuStrip;
             MaximizeBox = false;
+            MaximumSize = new Size(501, 581);
+            MinimumSize = new Size(501, 581);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Source 2 CPU Lightmap";
+            Text = "Counter-Strike 2 SDK CPU Based Lightmap Compiler";
             Load += MainForm_Load;
             mainMenuStrip.ResumeLayout(false);
             mainMenuStrip.PerformLayout();
             mainGroupBox.ResumeLayout(false);
             mainGroupBox.PerformLayout();
+            cpuThreadGroupbox.ResumeLayout(false);
+            cpuThreadGroupbox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)cpuThreadCount).EndInit();
             steamAudioGroupBox.ResumeLayout(false);
             steamAudioGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)saudioThreads).EndInit();
@@ -484,5 +543,10 @@
         private Label mapNameLabel;
         private ComboBox mapNameList;
         private Label saudioThreadRecomLabel;
+        private GroupBox cpuThreadGroupbox;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private Label availableCpuThreadLabel;
+        private NumericUpDown cpuThreadCount;
+        private Label useCPUThreadsLabel;
     }
 }

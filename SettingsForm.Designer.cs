@@ -101,7 +101,6 @@
             Name = "SettingsForm";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Settings";
-            Load += SettingsForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }

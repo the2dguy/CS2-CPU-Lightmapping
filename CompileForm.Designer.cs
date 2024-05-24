@@ -74,8 +74,12 @@
             Controls.Add(compileDoneButton);
             Controls.Add(outputTextbox);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MaximizeBox = false;
+            MaximumSize = new Size(816, 487);
+            MinimumSize = new Size(816, 487);
             Name = "CompileForm";
             RightToLeftLayout = true;
+            StartPosition = FormStartPosition.CenterParent;
             Text = "Compile";
             Load += CompileForm_Load;
             ResumeLayout(false);
