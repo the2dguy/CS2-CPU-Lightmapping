@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Source2CPULightmap.Classes
+namespace Source2CPULightmap.Classes.Settings
 {
     public static class WindowsUserInfo
     {

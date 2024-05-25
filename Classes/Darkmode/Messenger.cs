@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
-using static Source2CPULightmap.Classes.KeyValue;
+using static Source2CPULightmap.Classes.Darkmode.KeyValue;
 
-namespace Source2CPULightmap.Classes
+namespace Source2CPULightmap.Classes.Darkmode
 {
     /* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
     public static class Messenger

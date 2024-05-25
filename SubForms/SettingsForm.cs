@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Source2CPULightmap.Classes;
+using Source2CPULightmap.Classes.Darkmode;
+using Source2CPULightmap.Classes.Settings;
 
 namespace Source2CPULightmap
 {

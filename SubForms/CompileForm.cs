@@ -1,4 +1,5 @@
-﻿using Source2CPULightmap.Classes;
+﻿using Source2CPULightmap.Classes.Darkmode;
+using Source2CPULightmap.Classes.Settings;
 using System.Diagnostics;
 
 namespace Source2CPULightmap

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
 //using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
-namespace Source2CPULightmap.Classes
+namespace Source2CPULightmap.Classes.Darkmode
 {
     /// <summary>This tries to automatically apply Windows Dark Mode (if enabled) to a Form.
     /// <para>Author: BlueMystic (bluemystic.play@gmail.com)  2024</para></summary>

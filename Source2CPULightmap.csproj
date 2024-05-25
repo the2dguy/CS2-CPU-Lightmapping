@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>hammer_icon.ico</ApplicationIcon>
+    <ApplicationIcon>cpuhammer.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="hammer_icon.ico" />
+    <Content Include="cpuhammer.ico" />
   </ItemGroup>
 
   <ItemGroup>
