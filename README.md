@@ -1,3 +1,5 @@
+# DOESN'T WORK ANYMORE. Valve removed VRAD2 as of the Armory Update
+
 # CPU Lightmap Compiler for Counter-Strike 2 SDK
 
 ## IMPORTANT!
